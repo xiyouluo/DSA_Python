@@ -4,7 +4,9 @@
 
 #### 1.1 快速排序
 
-- ```cpp
+- 
+  
+  ```cpp
   void quick_sort(type arr[], int l, int r) {
       // 递归的终止情况
       if (l >= r) return;
@@ -25,7 +27,7 @@
       // 第三步：子问题合并.快排这一步不需要操作，但归并排序的核心在这一步骤
   }
   ```
-
+  
 - 排序算法是否稳定的定义：原序列中相等的元素是否交换位置
 
 #### 1.2 归并排序
@@ -288,15 +290,15 @@
 
 ### 1. 链表
 
-注：此处用数组来模拟、实现链表，也称静态链表；不用`struct`是因为这种实现方式用到了很慢的操作`new`。
-
 #### 1.1 单链表
 
 单链表一般用于实现邻接表，存储图和树。
 
-我们用两个数组来模拟，分别是`e[N]`和`ne[N]`，**前者存索引`N`处的值，后者存 索引`N`处元素的下一个元素 的索引，两个数组分别是索引到值、索引到下一个元素索引的映射，由索引`idx`**联系起来，最后一个元素的下一个元素的索引定义为`-1`；我们利用前述两个数组，使用索引`idx`将链表信息记录在数组中。
 
-C++ 数组实现：
+
+首先是 C++ 数组实现的链表，也称静态链表，这种实现方式不用`struct`或`class`，不需要用到很慢的操作`new`，会更快，但代价是稍难理解一些。
+
+我们用两个数组来模拟，分别是`e[N]`和`ne[N]`，**前者存索引`N`处的值，后者存 索引`N`处元素的下一个元素 的索引，两个数组分别是索引到值、索引到下一个元素索引的映射，由索引`idx`**联系起来，最后一个元素的下一个元素的索引定义为`-1`；我们利用前述两个数组，使用索引`idx`将链表信息记录在数组中。
 
 ```cpp
 // head存储头指针，e[]存储节点的值，ne[]存储节点的next指针，idx表示下一个可用的数组索引
@@ -331,7 +333,9 @@ void remove(int k) {
 //如果需要在链表最后插入元素，则令 最后一个元素的下一个元素 的下标为tail
 ```
 
-Python oop实现：
+
+
+OOP 实现则更容易理解和使用，以下是一个 Python 实现：
 
 ```python
 class Node:
@@ -341,7 +345,8 @@ class Node:
 
 class LinkedList:
     def __init__(self):
-        self.head = None
+        self.head = None # head是链表的属性，oop写法中head就是链表首节点
+        # 有时单链表中也会有tail（或只有tail没有head的循环单链表），tail就是链表的尾节点
             
 	def insert(self, value, position): # 加入后在position位置
         if position < 0 or position > self.length():
@@ -386,41 +391,89 @@ class LinkedList:
         self.head = prev # head只需最后修改一次即可
 ```
 
-单链表中，由于“下一个”只能用“当前这个”的`next`得到，所以在操作时一般需要先存下或使用`current.next`，再将`current`的`next`修改；反过来的话“原来的下一个”，即`current.next`就找不到了。
+在单链表中，由于“下一个”只能用“当前这个”的`next`得到，所以在操作时一般需要==先存下或使用“下一个”==，即`current.next`，再将`current`的`next`修改；反过来操作的话“原来的下一个”，即`current.next`就找不到了，注意到这一点有利于更清晰地写出`insert`, `remove`, `reverse`等方法。
 
 
 
 #### 1.2 双链表
 
-双链表一般用于优化某些问题。
+>  双链表一般用于优化某些问题。
+>
+>  -- <cite> yxc </cite>
+
+优化哪些问题？ To be continued.
+
+
+
+C++ 数组实现静态双链表：
 
 ```cpp
 // e[]表示节点的值，l[]表示节点的左指针，r[]表示节点的右指针，idx表示当前用到了哪个节点
 int e[N], l[N], r[N], idx;
 
 // 初始化
-// ATTENTION: 记得调用
-void init()
-{
+void init() {
     // 0是左端点，1是右端点
     r[0] = 1, l[1] = 0;
     idx = 2;
 }
 
 // 在节点 下标是k的点 的右边插入x
-void insert(int k, int x)
-{
+void insert(int k, int x) {
     e[idx] = x;
     l[idx] = k, r[idx] = r[k];
     l[r[k]] = idx；r[k] = idx ++ ;
 }
 
 // 删除下标为k的节点
-void remove(int k)
-{
+void remove(int k) {
     l[r[k]] = l[k];
     r[l[k]] = r[k];
 }
+```
+
+
+
+Python OOP:
+
+```python
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.prev = None
+        self.next = None
+
+class DoublyLinkedList:
+    def __init__(self):
+        self.head = None
+        self.tail = None
+
+    def insert_before(self, node, new_node):
+        if node is None:  # 如果链表为空，将新节点设置为头部和尾部
+            self.head = new_node
+            self.tail = new_node
+        else:
+            new_node.next = node
+            new_node.prev = node.prev # 先用“上一个”
+            if node.prev != None:
+                node.prev.next = new_node
+            else:  # 如果在头部插入新节点，更新头部指针
+                self.head = new_node
+            node.prev = new_node # 修改“上一个”
+
+    def display_forward(self):
+        current = self.head
+        while current != None:
+            print(current.value, end=" ")
+            current = current.next
+        print()
+
+    def display_backward(self):
+        current = self.tail
+        while current != None:
+            print(current.value, end=" ")
+            current = current.prev
+        print()
 ```
 
 
@@ -449,7 +502,9 @@ if (tt > 0) {
 }
 ```
 
-Python 中直接用`list`即可。
+
+
+Python 直接用`list`即可。
 
 
 
@@ -474,7 +529,9 @@ q[hh];
 if (hh <= tt)
 ```
 
-Python 中用内置的双端队列`collections.deque`即可。
+
+
+Python 用内置的双端队列`collections.deque`即可。
 
 
 
