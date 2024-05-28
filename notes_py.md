@@ -1,6 +1,15 @@
-#### 1. Python 变量的指针本质
 
-广义地，可以把 python 中一切可赋值的东西都称为变量，而所有的变量都是指针（或者说引用），包括列表的元素，字典的值。其指针本质体现在赋值、函数形参、函数返回值、存放元素到容器中等处。
+top-down, bottom-up
+https://www.zhihu.com/question/410196236/answer/1373722221?utm_psn=1756480534099050496
+
+递归第一步就是把问题拆成“子”问题, 子问题的规模更小, base case 是规模最小的子问题 (可能有多个) , 所以一定是 top-down 的；如果有一个问题可以由更大的问题解决, 也可以定义一个递归调用, 使得递归是按照bottom-up的逻辑进行的, 比如数学里的演绎推理, 但就计算机领域, 算法题而言, 我们从不会为了解决一个问题, 先去考虑规模更大的问题, 永远是将其拆解为子问题, 即便最后实现上可能是bottom-up, 例如非记忆化搜索的dp, 但这里up到最顶层也就是我们的原问题, 而非更大的问题. 所以递归和dp都是把问题转化为更小的子问题, 前者top-down地求解, 后者bottom-up地求解. 所以就算法题而言, 递归 (函数自我调用) 一定top-down, bottom-up一定不能用递归 (函数自我调用) 实现, 当你想到一个buttom-up的思路时, 不要试图用递归实现, 一定需要先把子问题“存”起来, 像bottom-up的dp一样. 
+https://en.wikipedia.org/wiki/Recursion
+
+递归就是函数自我调用, 是一种程序运行方式；
+dp是一种high-level的想法, 可以有不同的实现方式, 狭义dp是bottom-up的, 但top-down的递归+cache也是几乎等价的 (时间复杂度一样, 常数大一些) 
+
+#### 1. Python 变量的指针本质
+广义地，可以把 python 中一切可赋值的东西都称为变量，而所有的变量都是指针（或者说引用），包括列表的元素，字典的值。其指针本质体现在赋值、函数形参、函数返回值、存放元素到容器中等处。**脑子里时时刻刻要有类似 pythontutor 里那种从 identifier 指向对象的箭头！**
 
 - python 中赋值是让左侧变量指向右侧变量指向的对象（如果右侧是变量）或让左侧变量指向右侧对象（如果右侧是对象）
 
@@ -28,55 +37,32 @@
   # output: 2
   ```
 
-- 赋值（函数形参等情形也一样）后更改变量导致的行为则和变量类型是否可变有关：When you use `=` to assign a variable to another, you are creating a reference to the same object in memory. This is true for both mutable and immutable types. However, the crucial distinction lies in how these types handle modifications.
+`for item in comtainer`循环中，`item`也是指向`contain`的一个元素指向的对象。
 
-  - When you have immutable types, like integers (`int`) or strings (`str`), modifications result in the creation of a new object.
+赋值（其他情形也一样）后更改变量导致的行为则和变量类型是否可变有关：
 
-    ```python
-    a = 42
-    b = a  # b now references the same integer object as a
-    
-    a = 99
-    print(b)  # Output: 42
-    ```
+> A class is immutable if each **object** of that class has a fixed value upon instantiation that cannot subsequently be changed. For example, the float class is immutable. Once an instance has been created, its value cannot be changed (although an **identifier** referencing that object can be reassigned to a different value).
+> 
+> *Data Structures and Algorithms in Python*
 
-    In this case, after changing `a`, `b` still references the original immutable object (42). This is because integers are immutable, and when you change the value of `a`, it creates a new object.
+immutable or mutable 是针对 object 而言的，而非 identifier，immutable 指的是 identifier 指向的对象不可 mutate，赋值只是重新指向，不是 mutate。
 
-  - With mutable types, like lists (`list`), modifications to the object are reflected in all references because they point to the same underlying object.
+在使用`*`运算符重复列表时，重复的元素是原始列表中相同对象的引用。这一点在处理可变对象（如列表）时尤其重要，因为修改一个地方会影响到其他引用相同对象的地方。
 
-    ```python
-    list1 = [1, 2, 3]
-    list2 = list1  # list2 now references the same list object as list1
-    
-    list1[0] = 99
-    print(list2)  # Output: [99, 2, 3]
-    ```
-
-    Here, modifying `list1` affects `list2` because both variables reference the same mutable list object in memory.
-    
-    
-
-结合例子进一步理解 python 变量的指针本质：
-
-```python
-ls = ['A', 'B']
-for ch in ls:
-    ch = ch.lower() # 不会改变ls中每个元素的值
-    # ch = 'b'也不会改变
-ls[0] = 'E' # 可以改变ls中ls[0]的值
+##### 补充例子
+建 BST 时`insert_node`函数的错误例子：
+```Python
+def insert_node(root, key):
+    if not root:
+        root = Node(key)
+        return
+    if key < root.key:
+        insert_node(root.left, key)
+    else:
+        insert_node(root.right, key)
+    return
 ```
-
-- 在这段 snippet 中，`for`循环遍历 `ls`时，变量`ch`与`ls[i]`指向同一个对象（例如第一次循环时都指向对象`'A'`），或者说都是同一个对象的引用，但注意不是 c++ 中说的引用（也就是说不是变量`ch`引用了`ls[i]`），在`ch = ch.lower()`中，右侧创建了一个新的`str`类型的对象，并赋值给变量`ch`，而此时`ls[i]`仍然指向之前的对象（例如第一次循环后`ls[0]`仍然指向对象`'A'`）；而在`ls[0] = 'E'`中，就是使`ls[0]`指向新的对象`'E'`，并没有改变字符串，这与`str`类型 immutable 不矛盾。
-- 事实上此处`for`循环的变量`ch`也相当于是用`ls[i]`赋值得到的，那么它是一个 mutable type 时行为也就可以预测了。
-
-
-
-在使用`*`运算符重复列表时，重复的元素是原始列表中相同对象的引用。这一点在处理可变对象（如列表）时尤其重要，因为修改一个地方会影响到其他引用相同对象的地方
-
-
-
-
-
+例如第一次执行到第6行递归调用`insert_node(root.left, key)`时，进入下一层函数后，这层函数的`root`和上一层函数的`root.left`这两个identifier只是指向了同一个对象（函数形参与实参的关系），在执行这层函数的第3行`root = Node(key)`时，赋值，只会将此时的`root`指向新的对象，不影响上一层的`root.left`，这个引用不是 C++ 那种引用（引用后二者就完全等价，改其中之一一定影响另一）。
 #### 2. 批量处理列表元素
 
 当需要，可以考虑：
@@ -130,13 +116,15 @@ f"{expr:.2f}"
 
 #### 7. 列表推导式进一步用法
 
-- 添加条件筛选
-
-  ```python
-  # 生成一个包含 0 到 9 的偶数的列表
-  even_numbers = [x for x in range(10) if x % 2 == 0]
-  # 输出: [0, 2, 4, 6, 8]
+- 用`if`进行条件筛选
+  ```Python
+  new_list = [expression for item in iterable if condition]
   ```
+
+- 用`if-else`进行条件转换
+```Python
+new_list = [expression_if_true if condition else expression_if_false for item in iterable]
+```
 
 - 多重循环
 
@@ -154,15 +142,13 @@ f"{expr:.2f}"
   # 输出: [[0, 0, 0], [0, 1, 2], [0, 2, 4]]
   ```
 
-此外，类似列表推导式，还有字典推导式和集合推导式：
-
+此外，类似列表推导式，还有字典推导式, 集合推导式, 元组推导式：
 ```python
 {key: value for (key, value) in iterable}
 {expr for x in iterable}
+tuple(expr for x in iterable)
 ```
-
-
-
+但是元组推导式中要写`tuple`不能只写括号, 否则是生成器, 而生成器是一次性的, 一旦迭代完就耗尽 (exhausted) 了.
 #### 8. 自定义排序
 
 Python 中对类的实例排序和 C++ 一样依照`<`进行，因此可以写类，重载`<`运算符，即`__lt__`实现自定义排序；此外（虽然对排序没用），`<=`是`__le__`，`>`是`__gt__`，``>=`是`__ge__`。
@@ -213,6 +199,7 @@ Python 中对类的实例排序和 C++ 一样依照`<`进行，因此可以写�
 - `zip()`：将多个`Iterable`以`tuple`形式打包，返回一个`zip`对象，`zip`对象是一个`tuple`的迭代器，需要时（例如要打出来看）可以转为`list`
 - 日期相关问题：`import calendar`
 - 中位数等统计问题：`import statistics`
+- 哈希相关，例如 MD5 加密：`hashlib`
 
 
 
@@ -230,17 +217,18 @@ Python 中对类的实例排序和 C++ 一样依照`<`进行，因此可以写�
 
 切片适用于序列型对象（sequence type），如`str`,`list`,`tuple`。
 
-一般语法为`sequence[start:stop:step]`
+一般语法为`sequence[start:stop:step]`。
 
 - `start`或`stop`越界时，切片操作不会抛出异常，而是进行截断
 - `start`比`stop`大时，仍然不会抛出异常，而是直接返回空序列
-- `start`,`stop`,`:step`均可缺省
+- `start`, `stop`, `:step`均可缺省，缺省和**写`None`**等效。
+- `step`可以为负，代表倒着截取，`start`和`stop`仍然代表开始和结束位置。但是倒着从某位置截取到`0`且包含`0`不能把`stop`写作`-1`，这和`range`不同，因为`-1`这个索引代表最后一个位置，要截取到`0`且包含`0`时`stop`应该不写或写`None`。
 
 
 
 #### 16. Python 的队列
 
-Python 列表`list`的`pop(i)`一般是 $\Omicron(n)$ 的，仅`pop()`或者说`pop(-1)`是 $\Omicron(1)$的，所以不宜用`list`模拟 queue，一般用`collections.deque`，其`popleft()`是 $\Omicron(1)$ 的；`deque()`可用`Iterable`初始化，一般就用`list`配合推导式初始化`deque`，或者直接`duque()`初始化为空。
+Python 列表`list`的`pop(i)`在`i`为非负数索引时是 $O(n - i)$ 的，仅`pop()`或者说`pop(-1)`是 $O(1)$的，所以不宜用`list`模拟 queue，一般用`collections.deque`，其`popleft()`是 $O(1)$ 的；`deque()`可用`Iterable`初始化，一般就用`list`配合推导式初始化`deque`，或者直接`duque()`初始化为空。
 
 
 
@@ -357,7 +345,7 @@ Python3.9 之后还有`@functools.cache
 
 #### 24. 合并列表的空间复杂度
 
-`list`的`extend`方法把另一个列表加到当前列表，空间复杂度 $\Omicron(1)$，而加法要创建新列表，空间复杂度 $\Omicron(n)$​。
+`list`的`extend`方法把另一个列表加到当前列表，空间复杂度 $O(1)$，而加法（包括`+=`）要创建新列表，空间复杂度 $O(n)$​。
 
 
 
@@ -393,8 +381,7 @@ Python3.9 之后还有`@functools.cache
 
 
 
-#### 28. 作用域 (scope)
-
+#### 28. 作用域 (Scope)
 Python follows the principle of "LEGB" for resolving names in different scopes:
 
 - The Local, or function-level, scope, which exists inside functions.
@@ -402,18 +389,117 @@ Python follows the principle of "LEGB" for resolving names in different scopes:
 - The Global scope, which exists at the module level.
 - The Built-in scope, which is a special scope for Python’s built-in names.
 
-
-
 You can’t directly **modify** a variable from a high-level scope (like global) in a lower-level scope  (like local).
 
 这里涉及 Python 变量的所谓指针本质，此处说的 **modify** ==只指使此变量指向另一个对象==，例如赋值；但是在低层级对一个高层级的 mutable 变量进行 mutate 是可以的，只是不能更改它地址或者说`id`。
 
 这其实是很好理解的，因为所谓“使变量指向另一个对象”，就是创建了一个新变量，而在低层级创建的变量就属于这个层级，如果在创建这个低层级变量时，已经把这个变量名解释为高层级那个变量了的话，此时就会产生命名冲突；而对一个高层级的 mutable 进行 mutate 不产生新变量，Python已经按照 LEGB 把这一变量理解为高层级的变量，不会产生问题。
 
-
-
 当需要在低层级的作用域使高层级的变量名指向另一个对象时，需要在使用这个变量名之前用`global`或`nonlocal`语句声明，此后该低层级作用域的该变量就会被理解成相应的高层级作用域中的变量；或者使用`globals()`函数：
 
-The built-in `globals()` function allows you to access the global scope’s name table, which is a writable dictionary containing your current global names and their corresponding values. You can use this function to either access or modify the value of a global variable from within your functions.
+The built-in `globals()` function allows you to access the global scope’s name table, which is a **writable** dictionary containing your current global names and their corresponding values. You can use this function to either access or modify the value of a global variable from within your functions.
+
+**一般`globals()`会更好用（但注意键是`str`类型，不能只写变量名）。**
+因为有时候需要在多个地方（比如一些 if-else 中）声明`global`然后改变某变量，而 Python 解释器会在运行前检查，不允许`global`声明出现在对该名称的赋值后（`SyntaxError: name 'xxx' is assigned to before global declaration`），且此处的前后是函数文本位置的前后，不看具体运行后的递归等正常运行顺序。所以有时一个我们人认为如果运行起来能够正常声明作用域的函数也会出现如上bug。
+
+注：OJ的pylint运行前静态检查有时会导致“没道理的”ce：要求在函数内使用不可变类型的全局变量时，将该变量的初始化放到函数前面。可以在代码开始加一行`# pylint: skip-file`跳过其检查避免这个问题。
 
  
+#### 29. 输入输出重定向
+```Python
+import sys
+
+sys.stdin = open('input.txt', 'r')
+sys.stdout = open('output.txt', 'w')
+```
+好像有问题，经测试spyder中没用?? https://zhuanlan.zhihu.com/p/365033765
+
+试试with open，之前好像能用
+
+#### 30. Nested Function
+一般的函数是在全局范围内定义的，称为全局函数。，但Python 还支持在函数体内定义函数，这种函数称为局部函数。
+
+在默认情况下，局部函数对外部是隐藏的，局部函数只能在函数体内调用。函数也可以返回局部函数，以便程序在其他作用域中使用局部函数。
+
+#### 31. 去除重复元素
+不需要保持顺序时简单地使用`list(set(myList))`即可。
+
+**需要保持顺序时：**
+由于 Python 3.6 之后**字典会保持插入顺序**（集合仍然乱序），可以利用字典去重并保持顺序，如：`sq = list({int(x): None for x in myList}.keys())`，用字典推导式把要去重的列表作为键去重（值随意），再转回`list`。
+
+也可以用一种时间复杂度高一些但很优雅的写法：
+`unique_lst = [x for i, x in enumerate(lst) if x not in lst[:i]]`。
+
+
+进阶: 单调栈? 见labuladong
+#### 32. 条件判断
+Python 的条件判断也有"短路求值"（short-circuit evaluation）机制，所以`if a and b`以及`if a or b`中`a`和`b`的顺序也影响运行时间，尤其是其一需要大量运算时（例如是个递归函数）。
+
+#### 33. Iterators and Generators
+> In Python, the mechanism for iteration is based upon the following conventions:
+> - An **iterator** is an object that manages an iteration through a series of values. If variable, `i`, identifies an iterator object, then each call to the built-in function, `next(i)`, produces a subsequent element from the underlying series, with a StopIteration exception raised to indicate that there are no further elements.
+> - An **iterable** is an object, `obj`, that produces an iterator via the syntax `iter(obj)`.
+>
+> It is possible to create multiple iterators based upon the same iterable object, with each iterator maintaining its own state of progress. However, iterators typically maintain their state with indirect reference back to the original collection of elements.
+> 
+> Python also supports functions and classes that produce an implicit iterable series of values, that is, without constructing a data structure to store all of its values at once. Such a **lazy evaluation** technique has great advantage.
+
+> The most convenient technique for creating iterators in Python is through the use of **generators**. A generator is implemented with a syntax that is very similar to a function, but instead of returning values, a `yield` statement is executed to indicate each element of the series.
+> 
+> It is illegal to combine yield and return statements in the same implementation, other than a zero-argument return statement to cause a generator to end its execution.
+> 
+> For each iteration of the loop, Python executes our procedure until a `yield` statement indicates the next value.
+> *Data Structures and Algorithms in Python*
+
+#### 34. Chained Comparison
+Python 支持链式比较（语法糖），如`a <= b < c`, `a == b == c`，但注意 C++ 不支持，需要用`&&`连接。
+#### 35. Recursion Limit  
+By default, the **recursion limit** in Python is set to 1,000. If a recursive function exceeds this limit, a `RecursionError` is raised.
+```Python
+import sys
+
+sys.setrecursionlimit(100000)
+```
+另外，在C++中，递归调用的深度没有一个固定的默认限制，它受限于栈的大小。
+#### 36. `defaultdict`
+`defaultdict` 是 Python 标准库 `collections` 模块中的一个类，它是字典（`dict`）的子类，提供了一种方便的方式来设置默认值。
+
+与字典的区别是，`defaultdict` 在创建时需要指定一个默认工厂函数（default factory function）作为参数。该工厂函数用于提供默认值，并在访问不存在的键时自动调用。这样，即使字典中不存在某个键，也能够返回一个默认值，而不是引发 `KeyError` 异常。
+
+default factory function 这个形参要求传递一个 Callable 对象 (即函数, lambda 表达式, 类, 重载了`__call__`方法的类的实例) 实参, 且将该 Callable 对象无参数时的返回值 (或对类来说, 构造的实例) 作为字典的默认值. 注意此处是传参而不是调用函数, 所以只写该 Callable 对象的标识符, 不写圆括号.
+
+#### 37. \* 运算符
+`print(*ans if flag else -1)`在 flag 为`False`时会报错:
+
+TypeError: print() argument after * must be an iterable, not int
+
+打印对`ans if flag else -1`这个表达式解包的结果, 而不是打印解包`ans`的结果或`-1`.
+
+故`1`改成`[-1]`即可.
+
+==todo: 整理\*运算符==
+
+#### 38. 内置函数`len()`
+调用`len(obj)`时, 会调用`obj`的`__len__()`方法, 由于可迭代的内置类型都实现了`__len__`方法并且在增删元素时维护, 故`len()`是 $O(1)$ 的, 而无需从头统计. 且显然对未实现`__len__`方法的类的实例调用`len()`函数会抛出异常.
+
+#### 39. `__iter__`方法
+`__iter__`返回迭代器, 重载该方法除了可以使该类的实例作为迭代器使用 (或者说成为 Iterable) 外, 也使其支持**解包** (unpack) 操作, 如:
+```Python
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def __iter__(self):
+        yield self.name
+        yield self.age
+        # 也可以直接利用元组等的迭代器, 即return iter((self.name, self.age)) 
+
+# Creating an instance of the Person class
+person = Person('Alice', 30)
+# Unpacking the person object
+name, age = person
+```
+
+#### 40. 分数幂运算
+注意`a ** 1/2`表达的是 $\frac{a^1}{2}$, 且`**`返回的是浮点数.
