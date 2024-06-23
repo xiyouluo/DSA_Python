@@ -1,4 +1,10 @@
 # DSA_Python
-The repository contains my notes and related materials of DSA.
+This repository contains my summary and related materials on data structures and algorithms. The main notes file is Data Structure and Algorithm_handout.md, which focuses on explaining the principles of data structures and algorithms, and organizing the “mindset” behind coding problems for computer-based exams. It represents the results of my own thinking and reference material summaries, and is for reference only.
 
-Note that notes_py.md is mainly about the syntax while DSA_py.md is basically a template for implementing certain data structures and algorithms, and algo_template.md is virtually the same as DSA_py in contents but was written in c++ a year ago, when I was learing the course [算法基础课 by AcWing](https://www.acwing.com/activity/content/11/).
+
+
+The notes_py.md file contains issues related to Python syntax that I encountered during my studies. 
+
+
+
+Other files serve as auxiliary files for the main notes, providing bidirectional links between files (I use Obsidian for editing to utilize this feature. The double brackets [[ ]] within the notes represent such links, and readers can also use Obsidian for a better reading experience).
